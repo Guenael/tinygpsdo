@@ -37,19 +37,22 @@
    |                                                                   |
    |  IO Mapping uController, rev.A                                    |
    |                                                                   |
+   |  - PC0      (pin 23) | AN1                                        |
+   |  - PC1      (pin 24) | AN2                                        |
    |  - PC4/SDA  (pin 27) | I2C SDA                                    |
    |  - PC5/SCL  (pin 28) | I2C SCL                                    |
    |  - PD0/RXD  (pin 30) | USART RX                                   |
    |  - PD1/TXD  (pin 31) | USART TX                                   |
+   |  - PD2      (pin 32) | SYNC                                       |
    |  - PD5      (pin  9) | GPS INT                                    |
-   |  - PD6      (pin 10) | PA EN                                      |
-   |  - PD7      (pin 11) | INFO LED                                   |
+   |  - PD6      (pin 10) | INFO LED 2                                 |
+   |  - PD7      (pin 11) | INFO LED 1                                 |
    |  - PB0      (pin 12) | PLL LOCK                                   |
-   |  - PB2      (pin 14) | DAC LE                                     |
-   |  ! PB3               | DAC MOSI (old design)                      |
-   |  ! PB4      (pin 16) | DAC MISO (this board)                      |
-   |  - PB5      (pin 17) | DAC SCK                                    |
-   |                                                                   |
+   |  - PB2      (pin 14) | PRG_LE (DAC)                               |
+   |  - PB3      (pin 15) | PRG_MOSI (DAC)                             |
+   |  - PB5      (pin 17) | PRG_SCK (DAC)                              |
+   |  - ADC6     (pin 19) | PLL_ADC (ADC Analog PLL)                   |
+   |  - ADC7     (pin 22) | PLL_BIN (ADC Digital PLL)  FIXME           |
    |                                                                   | */
 
 
@@ -106,7 +109,7 @@ int main (void) {
     /* End of init sequence : Turn on the LED (pin 11) */
     PORTD |= _BV(PORTD7);
 
-    uint32_t dacValue;
+    //uint32_t dacValue;
     while(1) {
     	/* Get GPS data for the next time sync */
     	//gpsGetTime();
@@ -115,14 +118,17 @@ int main (void) {
     	//gpsTimeAling1Mb();
 
         // TODO digital PLL ajust
-        void dacTransmit24bits(dacValue);
-        _delay_us(100); 
+        dacTransmit24bits(10);
+        _delay_ms(2000);
+
+        dacTransmit24bits(30000);
+        _delay_ms(2000);
+        //_delay_us(100); 
     }
 
     /* This case never happens :) Useless without powermanagement... */
     return 0;
 }
-
 
 // Fix CFG_TP5 avec Checksum
 // Fix CFG_RATE

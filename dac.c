@@ -93,10 +93,9 @@ void dacTransmit24bits(uint32_t data) {
 
 void dacInit() {
     DDRB   |= _BV(DDB3);       /* MOSI   - Enable output */
-    //DDRB   |= _BV(DDB4);       /* MISO   - Enable output  FIXME ----------- */  
     DDRB   |= _BV(DDB5);       /* SCK    - Enable output */
 
-    DDRB   |=  _BV(DDB2);      /* DAC_LE - Enable output */
+    DDRB   |= _BV(DDB2);       /* DAC_LE - Enable output */
     PORTB  |= _BV(PORTB2);     /* DAC_LE disable */
 
     /* Enable SPI, as Master, prescaler = Fosc/16 */
