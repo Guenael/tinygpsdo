@@ -96,29 +96,27 @@ void dacTransmit24bits(uint32_t data) {
 
 
 void dacTransmitAlt(uint32_t data) {
-	PORTB  |= _BV(PORTB5);
-	_delay_us(1);
-
 	PORTB &= ~_BV(PORTB2);
 	_delay_us(1);
 
 	for(int i = 23; i >= 0; i--) {
 		if ((data >> i) & 0x1) {
-			DDRB     |= _BV(DDB3);
+			PORTB |= _BV(PORTB3);
 			_delay_us(1);
 		} else {
-			DDRB   &= ~_BV(DDB3);
+			PORTB &= ~_BV(PORTB3);
 			_delay_us(1);
 		}
 
-		PORTB &= ~PORTB5;
+		PORTB &= ~_BV(PORTB5);
 		_delay_us(1);
 
-		PORTB |= PORTB5;
+		PORTB |= _BV(PORTB5);
 		_delay_us(1);
 	}
 
 	PORTB |= _BV(PORTB2);
+	_delay_us(1);
 }
 
 
@@ -129,11 +127,13 @@ void dacInit() {
     DDRB   |= _BV(DDB2);       /* DAC_LE - Enable output */
     PORTB  |= _BV(PORTB2);     /* DAC_LE disable */
 
+    PORTB  |= _BV(PORTB5);  // FIXME
+
     /* Enable SPI, as Master, prescaler = Fosc/16 */
-    SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
+    //SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
 
     /* First initialisation of the DAC, with zero value */
-    dacTransmit24bits(0);
+    dacTransmitAlt(0);
     _delay_ms(100);
 }
 
