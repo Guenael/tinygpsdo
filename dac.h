@@ -38,3 +38,4 @@ void dacTransmitByte(uint8_t data);
 void dacTransmitWord(uint32_t data);
 void dacTransmit24bits(uint32_t data);
 void dacTransmitAlt(uint32_t data);
+void dacTransmitAlt2(uint32_t data);

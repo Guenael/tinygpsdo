@@ -76,14 +76,14 @@ void dacTransmit24bits(uint32_t data) {
     /* Enable DAC LE */
     PORTB &= ~_BV(PORTB2);
 
-    SPDR = p[3];  // Little endian
+    SPDR = p[1];
     while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
 
-    SPDR = p[2];  // Little endian
-    while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
+    SPDR = p[2];
+    while(!(SPSR & _BV(SPIF)));
 
-    SPDR = p[1];  // Little endian
-    while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
+    SPDR = p[3];
+    while(!(SPSR & _BV(SPIF)));
 
     /* Disable DAC LE */
     PORTB |= _BV(PORTB2);
@@ -97,8 +97,30 @@ void dacTransmitAlt(uint32_t data) {
 	PORTB &= ~_BV(PORTB2);
 
     /* Little endian 24 bits processing */
-	for(int i = 23; i >= 0; i--) {
+	for(int32_t i = 23; i >= 0; i--) {
 		if ((data >> i) & 0x01) {
+			PORTB |= _BV(PORTB3);
+		} else {
+			PORTB &= ~_BV(PORTB3);
+		}
+
+        /* Cycle clock */
+		PORTB &= ~_BV(PORTB5);
+		PORTB |= _BV(PORTB5);
+	}
+	
+    /* Disable DAC LE */
+	PORTB |= _BV(PORTB2);
+}
+
+
+void dacTransmitAlt2(uint32_t data) {
+    /* Enable DAC LE */
+	PORTB &= ~_BV(PORTB2);
+
+    /* Little endian 24 bits processing */
+	for(int32_t i=23; i >= 0; i--) {
+		if (data & (1<<i)) {
 			PORTB |= _BV(PORTB3);
 		} else {
 			PORTB &= ~_BV(PORTB3);
@@ -121,13 +143,13 @@ void dacInit() {
     DDRB   |= _BV(DDB2);       /* DAC_LE - Enable output */
     PORTB  |= _BV(PORTB2);     /* DAC_LE disable */
 
-    PORTB  |= _BV(PORTB5);  // FIXME
+    //PORTB  |= _BV(PORTB5);  // FIXME
 
-    /* Enable SPI, as Master, prescaler = Fosc/16 */
-    //SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
+    /* Enable SPI, as Master, prescaler = Fosc/16, LSB transmitted first */
+    //SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(DORD);
 
     /* First initialisation of the DAC, with zero value */
-    dacTransmitAlt(0);
+    dacTransmitAlt2(0);
     _delay_ms(100);
 }
 
