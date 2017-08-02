@@ -70,15 +70,12 @@ void dacTransmitWord(uint32_t data) {
 }
 
 
-// FIXME !!!
-// 012
-// 210
 void dacTransmit24bits(uint32_t data) {
-    /* Enable PLL LE */
-    PORTB &= ~_BV(PORTB2);
-    _delay_us(1); 
-
     uint8_t *p = (uint8_t*)&data;
+
+    /* Enable DAC LE */
+    PORTB &= ~_BV(PORTB2);
+
     SPDR = p[3];  // Little endian
     while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
 
@@ -88,35 +85,32 @@ void dacTransmit24bits(uint32_t data) {
     SPDR = p[1];  // Little endian
     while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
 
-    _delay_us(1); 
-
-    /* Disable PLL LE */
+    /* Disable DAC LE */
     PORTB |= _BV(PORTB2);
 }
 
 
+// 10MHz CPU, below 40MHz SPI acceptable
+// Alt func, standard SPCR didn't work...
 void dacTransmitAlt(uint32_t data) {
+    /* Enable DAC LE */
 	PORTB &= ~_BV(PORTB2);
-	_delay_us(1);
 
+    /* Little endian 24 bits processing */
 	for(int i = 23; i >= 0; i--) {
-		if ((data >> i) & 0x1) {
+		if ((data >> i) & 0x01) {
 			PORTB |= _BV(PORTB3);
-			_delay_us(1);
 		} else {
 			PORTB &= ~_BV(PORTB3);
-			_delay_us(1);
 		}
 
+        /* Cycle clock */
 		PORTB &= ~_BV(PORTB5);
-		_delay_us(1);
-
 		PORTB |= _BV(PORTB5);
-		_delay_us(1);
 	}
-
+	
+    /* Disable DAC LE */
 	PORTB |= _BV(PORTB2);
-	_delay_us(1);
 }
 
 
