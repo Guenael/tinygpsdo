@@ -75,8 +75,10 @@ int main (void) {
     CLKPR = 0;            // Set prescaler to 0 = Restore system clock to 10 MHz
     sei();
 
-    /* LED : Set pin 11 of PORT-PD7 for output*/
+    /* LED : Set pin 10 & 11 of PORT-PD6/7 for output*/
+    DDRD |= _BV(DDD6);
     DDRD |= _BV(DDD7);
+    DDRD |= _BV(DDD2);
 
     /* For now, used for DEBUG purpose only. Future : CLI for freq settings & modes */
     usartInit();
@@ -103,10 +105,10 @@ int main (void) {
     /* uBlox : Refresh rate for internal GPSDO alignment */
     gpsSet_CFG_RATE();
 
-    /* ADF4355 PLL Init, conf & settings */
+    /* DAC Init, conf & settings */
     dacInit();
 
-    /* End of init sequence : Turn on the LED (pin 11) */
+    /* End of init sequence : Turn on the Yellow LED (pin 11) */
     PORTD |= _BV(PORTD7);
 
     //uint32_t dacValue;
@@ -118,11 +120,15 @@ int main (void) {
     	//gpsTimeAling1Mb();
 
         // TODO digital PLL ajust
-        dacTransmit24bits(10);
-        _delay_ms(2000);
+        dacTransmit24bits(111);
+        _delay_ms(5000);
+        PORTD |= _BV(PORTD6);
+        PORTD &= ~_BV(PORTD2);
 
-        dacTransmit24bits(30000);
-        _delay_ms(2000);
+        dacTransmit24bits(10922);
+        _delay_ms(5000);
+        PORTD &= ~_BV(PORTD6);
+        PORTD |= _BV(PORTD2);
         //_delay_us(100); 
     }
 

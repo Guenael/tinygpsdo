@@ -33,8 +33,6 @@
 #include "config.h"
 #include "dac.h"
 
-#include "twi.h"
-
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -73,21 +71,54 @@ void dacTransmitWord(uint32_t data) {
 
 
 // FIXME !!!
+// 012
+// 210
 void dacTransmit24bits(uint32_t data) {
     /* Enable PLL LE */
     PORTB &= ~_BV(PORTB2);
+    _delay_us(1); 
 
     uint8_t *p = (uint8_t*)&data;
-    for (uint8_t i=0; i<3; i++) {
-        /* Start transmission */
-        SPDR = p[2-i];  // Little endian
+    SPDR = p[3];  // Little endian
+    while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
 
-        /* Wait for transmission complete */
-        while(!(SPSR & _BV(SPIF)));
-    }
+    SPDR = p[2];  // Little endian
+    while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
+
+    SPDR = p[1];  // Little endian
+    while(!(SPSR & _BV(SPIF)));  /* Wait for transmission complete */
+
+    _delay_us(1); 
 
     /* Disable PLL LE */
     PORTB |= _BV(PORTB2);
+}
+
+
+void dacTransmitAlt(uint32_t data) {
+	PORTB  |= _BV(PORTB5);
+	_delay_us(1);
+
+	PORTB &= ~_BV(PORTB2);
+	_delay_us(1);
+
+	for(int i = 23; i >= 0; i--) {
+		if ((data >> i) & 0x1) {
+			DDRB     |= _BV(DDB3);
+			_delay_us(1);
+		} else {
+			DDRB   &= ~_BV(DDB3);
+			_delay_us(1);
+		}
+
+		PORTB &= ~PORTB5;
+		_delay_us(1);
+
+		PORTB |= PORTB5;
+		_delay_us(1);
+	}
+
+	PORTB |= _BV(PORTB2);
 }
 
 
@@ -102,7 +133,7 @@ void dacInit() {
     SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
 
     /* First initialisation of the DAC, with zero value */
-    dacTransmitWord(0x00);
+    dacTransmit24bits(0);
     _delay_ms(100);
 }
 
