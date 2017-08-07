@@ -120,15 +120,18 @@ int main (void) {
     	//gpsTimeAling1Mb();
 
         // TODO digital PLL ajust
-        dacTransmitAlt2(1);
-        _delay_ms(5000);
+
         PORTD |= _BV(PORTD6);
         PORTD &= ~_BV(PORTD2);
 
-        dacTransmitAlt2(50000);
-        _delay_ms(5000);
+        for (uint32_t i=0; i<=60000; i++){
+	        dacTransmit24bits(i);
+    	    _delay_us(100);
+        }
+
         PORTD &= ~_BV(PORTD6);
         PORTD |= _BV(PORTD2);
+  	    _delay_ms(1000);
         //_delay_us(100); 
     }
 
