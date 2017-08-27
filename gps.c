@@ -519,7 +519,6 @@ void gpsTimeAling2Mb() {
 
 uint8_t gpsSyncAling() {
     uint32_t milli = 60000 - ((lGpsData.itow - lGpsData.leapsec)% 60000);
-    milli -= 600;  // FIXME
 
     static uint8_t sync = 0;
     if ( ((lGpsData.itow - lGpsData.leapsec)% 120000) >= 60000 )
