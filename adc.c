@@ -26,14 +26,14 @@
  */
 
 
-#include "cpu.h"
-#include "sensors.h"
+#include "config.h"
+#include "adc.h"
 
 #include <avr/io.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "usart.h"
 
 /* Vcc voltage (regulated output) */
 #define VCC 3.3
@@ -46,12 +46,16 @@ void adcInit() {
     /* Disable power saving */
     PRR &= ~_BV(PRADC);
 
-    /* Disable the digital buffer for the 4 first ADC */
-    DIDR0 = _BV(ADC0D) | _BV(ADC1D) | _BV(ADC2D) | _BV(ADC3D);  
+    /* Disable the digital buffer ADC6 */
+    //DIDR0 = _BV(ADC6D);  
+    //DIDR0 = (0<<ADC6D)
+    DIDR0 = _BV(6); 
+    // FIXME -- & missing defs
 
     /* Configure the ADC */
     ADMUX  |= _BV(REFS0);                             // Select Vref=AVcc, by default
     ADCSRA |= _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);   // Set Prescaler = 128, take your time...
+    //ADCSRA |= _BV(ADPS0);   // FIXME
     ADCSRA |= _BV(ADEN);                              // Enable ADC
     //ADCSRA |= _BV(ADLAR);                           // Bug, do not use...
 }
@@ -86,9 +90,6 @@ uint16_t adcRead(uint8_t pinSelect) {
 
 
 float getAdcPllVoltage() {
-    float value;
-
-    adcSetRef(0);
-    value = (float)adcRead(6);
+    float value = (float)adcRead(6);
     return (value * VCC) / 1024.0;
 }

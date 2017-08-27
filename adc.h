@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "cpu.h"
+#include "config.h"
 
 
 void adcInit();
@@ -36,4 +36,3 @@ void adcShutdown();
 void adcSetRef(uint8_t ref);
 uint16_t adcRead(uint8_t pinSelect);
 float getAdcPllVoltage();
-

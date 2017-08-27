@@ -61,11 +61,56 @@
 #include "twi.h"
 #include "gps.h"
 #include "dac.h"
+#include "adc.h"
 #include "usart.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <stdio.h>
+
+
+#define ALPHA 1.1
+#define ACCUMULATOR 1024.0
+#define OVERSAMPLE 64
+
+
+float lowPassFilter(float input) {
+    static float states[60] = {1.5};
+    static float znum[31] = {
+        0.0,2.794e-04,6.006e-04,9.76e-04,1.392e-03,1.8e-03,2.113e-03,2.215e-03,1.971e-03,1.261e-03,
+        0.0,-1.824e-03,-4.128e-03,-6.719e-03,-9.29e-03,-1.144e-02,-1.269e-02,-1.257e-02,-1.062e-02,-6.49e-03,
+        0.0,8.841e-03,1.979e-02,3.238e-02,4.594e-02,5.963e-02,7.254e-02,8.375e-02,9.244e-02,9.794e-02,
+        9.982e-02 };
+
+    float sumnum=0.0;
+    for (uint32_t i=0; i<60; i++) {
+        sumnum += states[i]*znum[i<31?i:60-i];
+        if (i<59)
+            states[i] = states[i+1];
+    }
+    states[59] = input;
+    sumnum += states[59]*znum[0];
+    return sumnum;
+}
+
+
+void pllTrack(void) {
+	static float pllAcc = 1.5;
+  float newSample;
+
+  PORTD |= _BV(PORTD6);
+	for (uint32_t i=0; i<OVERSAMPLE; i++) {
+		newSample = getAdcPllVoltage();
+
+    //pllAcc = lowPassFilter(newSample);
+		pllAcc -= pllAcc / ACCUMULATOR;
+		pllAcc += newSample / ACCUMULATOR;
+	}
+  PORTD &= ~_BV(PORTD6);
+	dacTransmit24bits((uint32_t)(pllAcc * ALPHA * 21845.0));
+	//_delay_ms(10);
+}
 
 
 int main (void) {
@@ -108,36 +153,27 @@ int main (void) {
     /* DAC Init, conf & settings */
     dacInit();
 
+    /* Internal ADC Init, conf & settings */
+  	adcInit();
+
     /* End of init sequence : Turn on the Yellow LED (pin 11) */
     PORTD |= _BV(PORTD7);
 
     //uint32_t dacValue;
     while(1) {
     	/* Get GPS data for the next time sync */
-    	//gpsGetTime();
+    	gpsGetTime();
 
-    	/* Align on an minute for the next message */
-    	//gpsTimeAling1Mb();
-
-        // TODO digital PLL ajust
-
-        PORTD |= _BV(PORTD6);
-        PORTD &= ~_BV(PORTD2);
-
-        for (uint32_t i=0; i<=60000; i++){
-	        dacTransmit24bits(i);
-    	    _delay_us(100);
-        }
-
-        PORTD &= ~_BV(PORTD6);
+      /* Sync signal on odd/even minute */
+      if(gpsSyncAling()) {
         PORTD |= _BV(PORTD2);
-  	    _delay_ms(1000);
-        //_delay_us(100); 
+        PORTD |= _BV(PORTD6);
+      } else {
+        PORTD &= ~_BV(PORTD2);
+        PORTD &= ~_BV(PORTD6);
+      }
     }
 
     /* This case never happens :) Useless without powermanagement... */
     return 0;
 }
-
-// Fix CFG_TP5 avec Checksum
-// Fix CFG_RATE

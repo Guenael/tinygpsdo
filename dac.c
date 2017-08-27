@@ -98,9 +98,6 @@ void dacInit() {
 
     /* Enable SPI, as Master, prescaler = Fosc/16, MSB transmitted first, reverse clock */
     SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(CPOL);
-
-    /* First initialisation of the DAC, with zero value */
-    dacTransmit24bits(0);
 }
 
 

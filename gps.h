@@ -48,6 +48,7 @@ void gpsTimeAling1Mb();
 void gpsTimeAling2Mb();
 void gpsTimeAling1M();
 void gpsTimeAling2M();
+uint8_t gpsSyncAling();
 char* getLocator();
 char* getLatitude();
 char* getLongitude();

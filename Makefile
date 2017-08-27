@@ -4,7 +4,7 @@ CFLAGS= -Wall -Wformat-overflow=0 -Os -std=c99 -ffunction-sections -fdata-sectio
 LDFLAGS = -Wall -Os -Wl,--gc-sections,--relax -mmcu=atmega328p
 LIBS = -lm
 
-OBJ = twi.o gps.o dac.o usart.o gpsdo.o
+OBJ = twi.o gps.o dac.o adc.o usart.o gpsdo.o
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@  
